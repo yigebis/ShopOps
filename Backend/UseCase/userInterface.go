@@ -8,6 +8,7 @@ import (
 type IUserUseCase interface {
 	LoginByEmail(email, password string) (string, string, int, error)
 	LoginByPhone(phone, password string) (string, string, int, error)
+	Login(user *Domain.User, password string) (string, string, int, error)
 	GetSingleUser(email string) (*Domain.User, int, error)
 	Register(user *Domain.User) (int, error)
 	VerifyEmail(email, token string) (int, error)
@@ -18,6 +19,14 @@ type IUserUseCase interface {
 	StoreToken(token string) (int, error)
 	Logout(email, token, refresher string) (int, error)
 	DeleteUser(email string) (int, error) //Only for admins
+
+	AddEmployee(employee *Domain.User, ownerEmail string) (int, error)
+	EditEmployee(employee *Domain.User, ownerEmail string) (int, error)
+	DeleteEmployee(email, ownerEmail string) (int, error)
+	GetEmployee(email, ownerEmail string) (*Domain.User, int, error)
+	GetAllEmployees(ownerEmail string) (*[]Domain.User, int, error) 
+	ActivateAccount(email, oldPassword, newPassword string) (int, error)
+
 }
 
 type IUserRepository interface {
@@ -32,6 +41,9 @@ type IUserRepository interface {
 	InvalidateResetToken(email string) error
 	GetResetTokenByEmail(email string) (string, error)
 
+	GetAllEmployees(ownerEmail string) (*[]Domain.User, error)
+	GetEmployee(email string) (*Domain.User, error)
+	UpdateUser(user *Domain.User) error
 	DeleteUser(email string) error
 }
 

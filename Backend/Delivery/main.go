@@ -67,7 +67,7 @@ func main(){
 
 
 	// setting up the controllers
-	user_controller := Controller.NewUserController(uuc)
+	user_controller := Controller.NewUserController(uuc, ts)
 
 	// setting up the router
 	router := Router.NewRouter(user_controller)

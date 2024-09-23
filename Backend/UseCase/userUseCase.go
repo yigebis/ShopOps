@@ -133,46 +133,7 @@ func (uuc *UserUseCase) LoginByEmail(email, password string) (string, string, in
 		return "", "", code, err
 	}
 
-	//check whether the user is verified or not
-	if !user.Verified{
-		code, err := uuc.ErrorService.NotVerified()
-		return "", "", code, err
-	}
-	// verify the password
-	err = uuc.PasswordService.VerifyPassword(user.Password, password)
-	if err != nil{
-		code, err := uuc.ErrorService.InvalidEmailPassword()
-		return "", "", code, err
-	}
-
-	//generate a new token and refresher for the user
-	token_seconds, _ := strconv.Atoi(uuc.TokenExpiry)
-	tokenExpiry := time.Now().Add(time.Second * time.Duration(token_seconds)).Unix()
-
-	refresher_seconds, _ := strconv.Atoi(uuc.RefresherExpiry)
-	refresherExpiry := time.Now().Add(time.Second * time.Duration(refresher_seconds)).Unix()
-
-	token, err := uuc.TokenService.GenerateToken(email, user.FirstName, tokenExpiry)
-	if err != nil{
-		code, err := uuc.ErrorService.InternalServer()
-		return "", "", code, err
-	}
-
-	refresher, err := uuc.TokenService.GenerateToken(email, user.FirstName, refresherExpiry)
-	if err != nil{
-		code, err := uuc.ErrorService.InternalServer()
-		return "", "", code, err
-	}
-
-	//store the refresher token
-	err = uuc.TokenRepo.InsertRefresher(email, refresher)
-	if err != nil{
-		code, err := uuc.ErrorService.InternalServer()
-		return "", "", code, err
-	}
-
-	code, err := uuc.ErrorService.NoError()
-	return token, refresher, code, err
+	return uuc.Login(user, password)	
 }
 
 func (uuc *UserUseCase) LoginByPhone(phone, password string) (string, string, int, error){
@@ -184,13 +145,22 @@ func (uuc *UserUseCase) LoginByPhone(phone, password string) (string, string, in
 		return "", "", code, err
 	}
 
-	//check whether the user is verified or not
+	return uuc.Login(user, password)	
+}
+
+func (uuc *UserUseCase) Login(user *Domain.User, password string) (string, string, int, error){
+	//check if the user is verified or the account is activated
 	if !user.Verified{
-		code, err := uuc.ErrorService.NotVerified()
-		return "", "", code, err
+		if user.Role == "owner"{
+			code, err := uuc.ErrorService.NotVerified()
+			return "", "", code, err
+		}else{
+			code, err := uuc.ErrorService.NotActivated()
+			return "", "", code, err
+		}
 	}
 	// verify the password
-	err = uuc.PasswordService.VerifyPassword(user.Password, password)
+	err := uuc.PasswordService.VerifyPassword(user.Password, password)
 	if err != nil{
 		code, err := uuc.ErrorService.InvalidPhonePassword()
 		return "", "", code, err
@@ -216,7 +186,7 @@ func (uuc *UserUseCase) LoginByPhone(phone, password string) (string, string, in
 	}
 
 	//store the refresher token
-	err = uuc.TokenRepo.InsertRefresher(phone, refresher)
+	err = uuc.TokenRepo.InsertRefresher(user.Email, refresher)
 	if err != nil{
 		code, err := uuc.ErrorService.InternalServer()
 		return "", "", code, err
@@ -293,6 +263,181 @@ func (uuc *UserUseCase) Logout(email, token, refresher string) (int, error){
 
 	return uuc.ErrorService.NoError()
 }
+
+func (uuc *UserUseCase) AddEmployee(employee *Domain.User, ownerEmail string) (int, error){
+	// check existence of the user
+	_, err := uuc.UserRepo.GetUserByEmail(employee.Email)
+	
+	if err == nil{
+		return uuc.ErrorService.UserExists()
+	}
+
+	// Set verified field false
+	employee.Verified = false
+
+	//hash the password
+	hashedPassword, err := uuc.PasswordService.HashPassword(employee.Password)
+	if err != nil{
+		fmt.Println("hashing")
+		return uuc.ErrorService.InternalServer()
+	}
+
+	employee.Password = hashedPassword
+	employee.RegistrationDate = time.Now()
+	employee.Role = "employee"
+	employee.OwnerEmail = ownerEmail
+	employee.ShopCount = 0
+
+	// store the user in the database
+	err = uuc.UserRepo.CreateUser(employee)
+	if err != nil{
+		fmt.Println("repo")
+		return uuc.ErrorService.InternalServer()
+	}
+
+	return uuc.ErrorService.NoError()
+}
+
+func (uuc *UserUseCase) EditEmployee(employee *Domain.User, ownerEmail string) (int, error){
+	// check existence
+	existingUser, err := uuc.UserRepo.GetUserByEmail(employee.Email)
+	if err != nil {
+		return uuc.ErrorService.UserNotFound()
+	}
+
+	if existingUser.Role != "employee" || existingUser.Verified{
+		return uuc.ErrorService.VerifiedOrNotEmploye()
+	}
+
+	if employee.OwnerEmail != ownerEmail{
+		return uuc.ErrorService.NotAuthorized()
+	}
+	
+	// check for phone number clashes
+	// if existingUser.PhoneNumber != employee.PhoneNumber{
+	// 	_, err := uuc.UserRepo.GetUserByEmail(employee.PhoneNumber)
+	// 	if err == nil{
+	// 		return uuc.ErrorService.UserExists()
+	// 	}
+	// }
+
+	// ensure not verified
+	employee.Verified = false
+
+	// generate a new password encryption if password has been changed
+	hashedPassword, err := uuc.PasswordService.HashPassword(employee.Password)
+	if err != nil {
+		return uuc.ErrorService.InternalServer()
+	}
+	employee.Password = hashedPassword
+
+	// edit user data in database
+	err = uuc.UserRepo.UpdateUser(employee)
+	if err != nil {
+		return uuc.ErrorService.InternalServer()
+	}
+
+	return uuc.ErrorService.NoError()
+}
+
+func (uuc *UserUseCase) DeleteEmployee(email, ownerEmail string) (int, error){
+	// check existence
+	existingUser, err := uuc.UserRepo.GetUserByEmail(email)
+	if err != nil {
+		return uuc.ErrorService.UserNotFound()
+	}
+
+	if existingUser.Role != "employee" || existingUser.Verified{
+		return uuc.ErrorService.VerifiedOrNotEmploye()
+	}
+
+	if existingUser.OwnerEmail != ownerEmail{
+		return uuc.ErrorService.NotAuthorized()
+	}
+	// check for phone number clashes
+	// if existingUser.PhoneNumber != employee.PhoneNumber{
+	// 	_, err := uuc.UserRepo.GetUserByEmail(employee.PhoneNumber)
+	// 	if err == nil{
+	// 		return uuc.ErrorService.UserExists()
+	// 	}
+	// }
+
+	// edit user data in database
+	err = uuc.UserRepo.DeleteUser(email)
+	if err != nil {
+		return uuc.ErrorService.InternalServer()
+	}
+
+	return uuc.ErrorService.NoError()
+}
+
+func (uuc *UserUseCase) GetAllEmployees(ownerEmail string) (*[]Domain.User, int, error){
+	employees, err := uuc.UserRepo.GetAllEmployees(ownerEmail)
+	if err != nil{
+		code ,err := uuc.ErrorService.InternalServer()
+		return nil, code, err
+	}
+
+	code, err := uuc.ErrorService.NoError()
+	return employees, code, err
+}
+
+func (uuc *UserUseCase) GetEmployee(email, ownerEmail string) (*Domain.User, int, error){
+	employee, err := uuc.UserRepo.GetEmployee(email)
+	if err != nil {
+		code, err := uuc.ErrorService.InternalServer()
+		return nil, code, err
+	}
+
+	if employee.OwnerEmail != ownerEmail{
+		code, err := uuc.ErrorService.NotAuthorized()
+		return nil, code, err
+	}
+
+	code, err := uuc.ErrorService.NoError()
+	return employee, code, err
+}
+
+func (uuc *UserUseCase) ActivateAccount(email, oldPassword, newPassword string) (int, error){
+	// check the user's document
+	existingUser, err := uuc.UserRepo.GetUserByEmail(email)
+	if err != nil {
+		return uuc.ErrorService.UserNotFound()
+	}
+
+	if existingUser.Role != "employee" || existingUser.Verified{
+		return uuc.ErrorService.UserExists()
+	}
+
+	// check if the two given apasswords are similar
+	if oldPassword == newPassword{
+		return uuc.ErrorService.SamePassword()
+	}
+
+	// check the old password
+	checkPassword := uuc.PasswordService.VerifyPassword(existingUser.Password, oldPassword)
+	if checkPassword != nil {
+		return uuc.ErrorService.InvalidEmailPassword()
+	}
+
+	// hash the new password
+	hashedPassword, err := uuc.PasswordService.HashPassword(newPassword)
+	if err != nil {
+		return uuc.ErrorService.InternalServer()
+	}
+	existingUser.Password = hashedPassword
+	
+	// activate the account
+	existingUser.Verified = true
+	err = uuc.UserRepo.UpdateUser(existingUser)
+	if err != nil {
+		return uuc.ErrorService.InternalServer()
+	}
+
+	return uuc.ErrorService.NoError()
+}
+
+
 
 //Only for admins
 func (uuc *UserUseCase) DeleteUser(email string) (int, error){

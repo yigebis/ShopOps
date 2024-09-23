@@ -68,6 +68,62 @@ func (ur *UserRepository) VerifyUser(user *Domain.User) error{
 	return err
 }
 
+func (ur *UserRepository) GetAllEmployees(ownerEmail string) (*[]Domain.User, error){
+	filter := bson.M{"owner_email" : ownerEmail}
+
+	cursor, err := ur.Collection.Find(ur.DbCtx, filter)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	defer cursor.Close(ur.DbCtx)
+	var employees []Domain.User
+
+	err = cursor.All(ur.DbCtx, employees)
+	if err != nil {
+		return nil, err
+	}
+
+	return &employees, nil
+}
+
+func (ur *UserRepository) GetEmployee(email string) (*Domain.User, error){
+	var employee = Domain.User{}
+	filter := bson.M{"email" : email}
+	err := ur.Collection.FindOne(ur.DbCtx, filter).Decode(&employee)
+	if err != nil {
+		return nil, err
+	}
+	return &employee, nil
+}
+
+func (ur *UserRepository) UpdateUser(user *Domain.User) error{
+	filter := bson.M{"email" : user.Email}
+	var update = make(map[string] interface{})
+
+	if user.FirstName != ""{
+		update["first_name"] = user.FirstName
+	}
+	if user.LastName != ""{
+		update["last_name"] = user.LastName
+	}
+	if user.PhoneNumber != ""{
+		update["phone_number"] = user.PhoneNumber
+	}
+	if user.ProfilePhoto != ""{
+		update["profile_photo"] = user.ProfilePhoto
+	}
+	if user.Sex != ""{
+		update["sex"] = user.Sex
+	}
+
+	_, err := ur.Collection.UpdateOne(ur.DbCtx, filter, update)
+	return err
+}
+
 func (ur *UserRepository) GetUserByVerificationToken(token string) (*Domain.User, error){
 	return nil, nil
 }
@@ -94,5 +150,5 @@ func (ur *UserRepository) GetResetTokenByEmail(email string) (string, error){
 
 
 func (ur *UserRepository) DeleteUser(email string) error{
-	return nil
+	panic("unimplemented")
 }

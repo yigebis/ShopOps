@@ -12,6 +12,8 @@ type IErrorService interface {
 	InvalidPhonePassword() (int, error)
 	InvalidEmailRefresher() (int, error)
 	NotVerified() (int, error)
-
-	ExamNotFound() (int, error)
+	NotActivated() (int, error)
+	VerifiedOrNotEmploye() (int, error)
+	SamePassword() (int, error)
+	NotAuthorized() (int, error)
 }

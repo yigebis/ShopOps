@@ -16,7 +16,7 @@ type User struct{
 	Password           string             `json:"password" bson:"password" validate:"required"`
 	Role               string             `json:"role" bson:"role"`
 	OwnerEmail         string             `json:"owner_email" bson:"owner_email"`
-	ProfilePhoto       string              `json:"profile_photo" bson:"profile_photo"`
+	ProfilePhoto       string             `json:"profile_photo" bson:"profile_photo"`
 	RegistrationDate   time.Time          `json:"registration_date" bson:"registration_date"`
 	ShopCount          int                `json:"shop_count" bson:"shop_count"`
 	Verified           bool               `json:"verified" bson:"verified"`

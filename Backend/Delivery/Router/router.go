@@ -22,7 +22,13 @@ func (r *Router) Run(){
 
 	router.POST("/register", r.UserController.Register)
 	router.POST("/login", r.UserController.Login)
-	router.GET("/verify", r.UserController.VerifyEmail)
+	router.POST("/verify", r.UserController.VerifyEmail)
+
+	router.GET("/employees", r.UserController.GetAllEmployees)
+	router.GET("/employee/:email", r.UserController.GetEmployee)
+	router.POST("/employee/add", r.UserController.AddEmployee)
+	router.POST("/employee/edit", r.UserController.EditEmployee)
+	router.POST("/employee/delete/:email", r.UserController.DeleteEmployee)
 
 	router.Run()
 }

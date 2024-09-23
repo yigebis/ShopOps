@@ -17,8 +17,10 @@ var ErrInvalidEmailPassword = errors.New("invalid email or password")
 var ErrInvalidPhonePassword = errors.New("invalid phone number or password")
 var ErrInvalidEmailRefresher = errors.New("invalid email or refresher")
 var ErrNotVerified = errors.New("unverified user")
-
-var ErrExamNotFound = errors.New("exam not found")
+var ErrNotActivated = errors.New("account not activated")
+var ErrVerifiedOrNotEmployee = errors.New("user verified or not an employee")
+var ErrSamePassword = errors.New("old and new password should be different")
+var ErrNotAuthorized = errors.New("unauthorized")
 
 type Error struct{}
 
@@ -66,6 +68,18 @@ func (e *Error) NotVerified() (int, error){
 	return http.StatusBadRequest, ErrNotVerified
 }
 
-func (e *Error) ExamNotFound() (int, error){
-	return http.StatusNotFound, ErrExamNotFound
+func (e *Error) NotActivated() (int, error){
+	return http.StatusBadRequest, ErrNotActivated
+}
+
+func (e *Error) VerifiedOrNotEmploye() (int, error){
+	return http.StatusBadRequest, ErrVerifiedOrNotEmployee
+}
+
+func (e *Error) SamePassword() (int, error){
+	return http.StatusBadRequest, ErrSamePassword
+}
+
+func (e *Error) NotAuthorized() (int, error){
+	return http.StatusUnauthorized, ErrNotAuthorized
 }

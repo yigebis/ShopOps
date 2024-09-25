@@ -69,21 +69,23 @@ func (ur *UserRepository) VerifyUser(user *Domain.User) error{
 }
 
 func (ur *UserRepository) GetAllEmployees(ownerEmail string) (*[]Domain.User, error){
-	filter := bson.M{"owner_email" : ownerEmail}
+	filter := bson.M{"owner_email" : ownerEmail, "role" : "employee"}
 
 	cursor, err := ur.Collection.Find(ur.DbCtx, filter)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
 		}
+		fmt.Println(err.Error())
 		return nil, err
 	}
 
 	defer cursor.Close(ur.DbCtx)
 	var employees []Domain.User
 
-	err = cursor.All(ur.DbCtx, employees)
+	err = cursor.All(ur.DbCtx, &employees)
 	if err != nil {
+		fmt.Println(err.Error())
 		return nil, err
 	}
 
@@ -102,7 +104,7 @@ func (ur *UserRepository) GetEmployee(email string) (*Domain.User, error){
 
 func (ur *UserRepository) UpdateUser(user *Domain.User) error{
 	filter := bson.M{"email" : user.Email}
-	var update = make(map[string] interface{})
+	var update = bson.M{}
 
 	if user.FirstName != ""{
 		update["first_name"] = user.FirstName
@@ -119,8 +121,17 @@ func (ur *UserRepository) UpdateUser(user *Domain.User) error{
 	if user.Sex != ""{
 		update["sex"] = user.Sex
 	}
+	if user.Password != ""{
+		update["password"] = user.Password
+	}
+	if user.ShopCount != 0{
+		update["shop_count"] = user.ShopCount
+	}
 
-	_, err := ur.Collection.UpdateOne(ur.DbCtx, filter, update)
+	_, err := ur.Collection.UpdateOne(ur.DbCtx, filter, bson.M{"$set" : update})
+	if err != nil{
+		fmt.Println(err.Error())
+	}
 	return err
 }
 
@@ -150,5 +161,11 @@ func (ur *UserRepository) GetResetTokenByEmail(email string) (string, error){
 
 
 func (ur *UserRepository) DeleteUser(email string) error{
-	panic("unimplemented")
+	filter := bson.M{"email" : email}
+
+	_, err := ur.Collection.DeleteOne(ur.DbCtx, filter)
+	if err != nil{
+		fmt.Println(err.Error())
+	}
+	return err
 }

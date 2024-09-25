@@ -6,14 +6,23 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Transaction struct{
+type SellTransaction struct{
 	ID primitive.ObjectID
 	ShopID primitive.ObjectID
+	// BranchID
 	EmployeeID primitive.ObjectID
 	ProductID primitive.ObjectID
-	CustomerID primitive.ObjectID
 	Date time.Time               
 	TotalQuantity int           
 	PaymentMethod string         //Cash or Bank
-	Status string                //S(Sold) or B(Bought)
+}
+
+type BuyTransaction struct{
+	ID primitive.ObjectID
+	ShopID primitive.ObjectID
+	// BranchID
+	ProductID primitive.ObjectID
+	TotalQuantity int
+	Date time.Time
+	PaymentMethod string
 }

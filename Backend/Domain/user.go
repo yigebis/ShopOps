@@ -25,5 +25,11 @@ type User struct{
 type Credential struct{
 	Email string `json:"email" bson:"email"`
 	Password string `json:"password" bson:"password"`
-	PhoneNumber string `json:"phone_number" bson:"phone_number"`
+	// PhoneNumber string `json:"phone_number" bson:"phone_number"`
+}
+
+type ActivationCredential struct{
+	Email string `json:"email" bson:"email"`
+	OldPassword string `json:"old_password" bson:"old_password"`
+	NewPassword string `json:"new_password" bson:"new_password"`
 }

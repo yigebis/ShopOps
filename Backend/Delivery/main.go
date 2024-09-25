@@ -70,6 +70,6 @@ func main(){
 	user_controller := Controller.NewUserController(uuc, ts)
 
 	// setting up the router
-	router := Router.NewRouter(user_controller)
+	router := Router.NewRouter(user_controller, jwtSecret)
 	router.Run()
 }

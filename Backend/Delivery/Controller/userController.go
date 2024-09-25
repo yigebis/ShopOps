@@ -75,20 +75,13 @@ func (c *UserController) Login(ctx *gin.Context){
 		return
 	}
 
-	if credential.Email != "" && credential.PhoneNumber != ""{
-		ctx.JSON(400, gin.H{"error" : "either email or phone_number are required"})
-		return
-	}
-
 	var token, refresher string
 	var code int
 
-	if credential.Email != ""{
+	if credential.Email != "" &&credential.Password != ""{
 		token, refresher, code, err = c.UserUseCase.LoginByEmail(credential.Email, credential.Password)
-	}else if credential.PhoneNumber != ""{
-		token, refresher, code, err = c.UserUseCase.LoginByPhone(credential.PhoneNumber, credential.Password)
 	}else{
-		ctx.JSON(code, gin.H{"error" : "either email or phone_number are required"})
+		ctx.JSON(code, gin.H{"error" : "email and password are required"})
 		return
 	}
 	
@@ -219,7 +212,7 @@ func (c *UserController) EditEmployee(ctx *gin.Context){
 
 	code, err := c.UserUseCase.EditEmployee(&employee, ownerEmail)
 	if err != nil{
-		ctx.JSON(code, err.Error())
+		ctx.JSON(code, gin.H{"error" : err.Error()})
 		return
 	}
 
@@ -238,13 +231,29 @@ func (c *UserController) DeleteEmployee(ctx *gin.Context){
 
 	code, err := c.UserUseCase.DeleteEmployee(email, ownerEmail)
 	if err != nil{
-		ctx.JSON(code, err.Error())
+		ctx.JSON(code, gin.H{"error" : err.Error()})
 		return
 	}
 
 	ctx.JSON(code, gin.H{"message" : "employee deleted successfully"})
 }
 
+func (c *UserController) ActivateAccount(ctx *gin.Context){
+	var activationCredential = Domain.ActivationCredential{}
+	err := ctx.ShouldBindJSON(&activationCredential)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{"error" : "invalid request payload"})
+		return
+	}
+
+	code, err := c.UserUseCase.ActivateAccount(activationCredential.Email, activationCredential.OldPassword, activationCredential.NewPassword)
+	if err != nil{
+		ctx.JSON(code, gin.H{"error" : err.Error()})
+		return
+	}
+
+	ctx.JSON(code, gin.H{"message" :"account activation successful"})
+}
 
 
 

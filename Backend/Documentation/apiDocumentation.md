@@ -26,7 +26,8 @@ Registers a new user (shop owner).
     "password": "string"
   }
 
-- **Validation:**  
+- **Validation:**
+  
   -first_name : required, minimum_length = 1, maximum_length = 50  
   -last_name : required, minimum_length = 1, maximum_length = 50  
   -sex : required, can be of types "M" and "F"  
@@ -36,6 +37,7 @@ Registers a new user (shop owner).
 
 
 - **Responses:**
+  
     -200 OK - Registration successful, verification email sent.
     -400 Bad Request - Invalid request payload.
     -409 Conflict - User already exists or pending verification.
@@ -44,9 +46,11 @@ Registers a new user (shop owner).
 ### **User Login**
 
 #### `POST /login`
+
 Logins a user (shop owner/employee).
 
 - **Request Body:**
+  
   ```json
   {
     "email": "string",
@@ -54,11 +58,13 @@ Logins a user (shop owner/employee).
   }
 
 - **Validation:**
+  
   "email" : required
   "password" : required
 
 
 - **Responses:**
+  
     -200 OK - Returns JWT access and refresher tokens.
     ```json
     {
@@ -73,15 +79,18 @@ Logins a user (shop owner/employee).
 ### **Email verification**
 
 #### `POST /verify`
+
 verifies a registered user (shop owner).
 
 - **Query Parameters:**
+  
   -email
   -token
 
 - **Responses:**
-    -200 OK - Email verified successfully.
-    -400 Bad Request - Invalid verification token.
+  
+    -200 OK - Email verified successfully.  
+    -400 Bad Request - Invalid verification token.  
     -409 Conflict - Email already verified.
 
 
@@ -91,9 +100,11 @@ verifies a registered user (shop owner).
 Returns a list of employees with their data.
 
 - **Headers:**
+  
     - Authorization : Bearer <token>
 
 - **Responses:**
+  
     -200 OK - List of employees.
     -401 Unauthorized - Invalid or missing token.
 
@@ -104,12 +115,15 @@ Returns a list of employees with their data.
 Retrieves details of a specific employee. Requires JWT authentication and ownership.
 
 - **Headers:**
+  
     -Authorization: Bearer <token>
 
 - **Path Parameters:**
+  
     -email: Email of the employee.
 
 - **Responses:**
+  
     -200 OK - Employee details.
     -401 Unauthorized - Invalid or missing token.
     -404 Not Found - Employee not found.
@@ -120,9 +134,11 @@ Retrieves details of a specific employee. Requires JWT authentication and owners
 Adds a new employee to the shop. Requires JWT authentication and ownership.
 
 - **Headers:**
+  
     -Authorization: Bearer <token>
 
 - **Request Body:**
+  
     ```json
     {
         "first_name": "string",
@@ -134,17 +150,19 @@ Adds a new employee to the shop. Requires JWT authentication and ownership.
     }
 
 - **Validation:**
-    "first_name" : required, minimum_length = 1, maximum_length = 50
-    "last_name" : required, minimum_length = 1, maximum_length = 50
-    "sex" : required, can be of types "M" and "F"
-    "phone_number" : required, length=13, must start with '+', then all should be numbers
-    "email" : required, must be an email
+  
+    "first_name" : required, minimum_length = 1, maximum_length = 50  
+    "last_name" : required, minimum_length = 1, maximum_length = 50  
+    "sex" : required, can be of types "M" and "F"  
+    "phone_number" : required, length=13, must start with '+', then all should be numbers  
+    "email" : required, must be an email  
     "password" : required, length >= 8, lower_case >= 2, upper_case >= 1, special >= 1
 
 - **Responses:**
-    201 Created - Employee added successfully.
-    400 Bad Request - Invalid request payload.
-    409 Conflict - Employee already exists.
+  
+    201 Created - Employee added successfully.  
+    400 Bad Request - Invalid request payload.  
+    409 Conflict - Employee already exists.  
 
 ### **Edit Employee**
 
@@ -152,9 +170,11 @@ Adds a new employee to the shop. Requires JWT authentication and ownership.
 Edits an existing employee's information. Requires JWT authentication and ownership.
 
 - **Headers:**
+  
     -Authorization: Bearer <token>
 
 - **Request Body:**
+  
     ```json
     {
         "email": "string",
@@ -163,26 +183,32 @@ Edits an existing employee's information. Requires JWT authentication and owners
     }
 
 - **Responses:**
-    -200 OK - Employee updated successfully.
-    -400 Bad Request - Invalid request payload.
-    -404 Not Found - Employee not found.
+  
+    -200 OK - Employee updated successfully.  
+    -400 Bad Request - Invalid request payload.  
+    -404 Not Found - Employee not found.  
 
 ### **Delete Employee**
+
 #### `POST /employee/delete/:email`
 Deletes an employee by their email. Requires JWT authentication and ownership.
 
 - **Headers:**
+  
     -Authorization: Bearer <token>
 
 - **Path Parameters:**
+  
     -email: Email of the employee.
 
 - **Responses:**
-    -200 OK - Employee deleted successfully.
-    -404 Not Found - Employee not found.
-    -401 Unauthorized - Invalid or missing token.
+  
+    -200 OK - Employee deleted successfully.  
+    -404 Not Found - Employee not found.  
+    -401 Unauthorized - Invalid or missing token.  
 
 ### **Activate Employee Account**
+
 #### `POST /activate`
 Activates an employee's account after receiving a temporary password.
 
@@ -195,7 +221,8 @@ Activates an employee's account after receiving a temporary password.
         "new_password": "string"
     }
 - **Responses:**
-    -200 OK - Account activated successfully.
-    -400 Bad Request - Invalid request payload or temporary password.
-    -401 Unauthorized - Invalid credentials.
+
+    -200 OK - Account activated successfully.  
+    -400 Bad Request - Invalid request payload or temporary password.  
+    -401 Unauthorized - Invalid credentials.  
 

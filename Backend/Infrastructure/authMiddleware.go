@@ -47,7 +47,7 @@ func UserMiddleware(jwt_signer string) gin.HandlerFunc {
 			return
 		}
 
-		exp := claims["exp"].(float64)
+		exp := claims["expiryDuration"].(float64)
         if int64(exp) < time.Now().Unix() {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
 			c.Abort()

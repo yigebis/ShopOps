@@ -38,8 +38,8 @@ Registers a new user (shop owner).
 
 - **Responses:**
   
-    -200 OK - Registration successful, verification email sent.
-    -400 Bad Request - Invalid request payload.
+    -200 OK - Registration successful, verification email sent.  
+    -400 Bad Request - Invalid request payload.  
     -409 Conflict - User already exists or pending verification.
 
 

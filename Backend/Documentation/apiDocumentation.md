@@ -27,12 +27,12 @@ Registers a new user (shop owner).
   }
 
 - **Validation:**
-  "first_name" : required, minimum_length = 1, maximum_length = 50
-  "last_name" : required, minimum_length = 1, maximum_length = 50
-  "sex" : required, can be of types "M" and "F"
-  "phone_number" : required, length=13, must start with '+', then all should be numbers
-  "email" : required, must be an email
-  "password" : required, length >= 8, lower_case >= 2, upper_case >= 1, special >= 1
+  -"first_name" : required, minimum_length = 1, maximum_length = 50
+  -"last_name" : required, minimum_length = 1, maximum_length = 50
+  -"sex" : required, can be of types "M" and "F"
+  -"phone_number" : required, length=13, must start with '+', then all should be numbers
+  -"email" : required, must be an email
+  -"password" : required, length >= 8, lower_case >= 2, upper_case >= 1, special >= 1
 
 
 - **Responses:**

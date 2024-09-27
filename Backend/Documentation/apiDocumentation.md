@@ -26,7 +26,7 @@ Registers a new user (shop owner).
     "password": "string"
   }
 
-- **Validation:**
+- **Validation:**  
   -first_name : required, minimum_length = 1, maximum_length = 50  
   -last_name : required, minimum_length = 1, maximum_length = 50  
   -sex : required, can be of types "M" and "F"  
